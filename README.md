@@ -55,6 +55,12 @@
 - Swagger UI: `http://localhost:5000/api/docs`
 - Health check: `http://localhost:5000/health`
 
+## Swagger Documentation
+
+- Open Swagger UI at `http://localhost:5000/api/docs` after starting the backend.
+- Use **Authorize** in Swagger and paste your JWT as `Bearer <token>`.
+- You can test all auth and task endpoints directly from the Swagger page.
+
 ## API Endpoints Table
 
 | Method | Route | Auth | Role | Description |
