@@ -12,7 +12,7 @@
 ## Prerequisites
 
 - Node.js 18 or newer
-- PostgreSQL 14 or newer
+- PostgreSQL 17 or newer
 - npm 9 or newer
 - A `.env` file for the backend and a `VITE_API_URL` value for the frontend
 
