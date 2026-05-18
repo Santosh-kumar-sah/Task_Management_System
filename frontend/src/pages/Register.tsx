@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, LoaderCircle, Lock, Mail, UserRound } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -24,105 +25,138 @@ export function Register(): JSX.Element {
     password: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const passwordStrength = (() => {
+    const value = form.password;
+
+    if (value.length < 6) {
+      return { label: "Weak", className: "weak", score: 1 };
+    }
+
+    if (value.length < 10 || !/[A-Z]/.test(value) || !/[0-9]/.test(value)) {
+      return { label: "Medium", className: "medium", score: 2 };
+    }
+
+    return { label: "Strong", className: "strong", score: 3 };
+  })();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
+    setSubmitting(true);
 
     try {
       await register(form.name, form.email, form.password);
-      navigate("/dashboard");
+      setSuccess("Account created successfully. Redirecting to dashboard...");
+      window.setTimeout(() => navigate("/dashboard"), 700);
     } catch (submissionError: unknown) {
       setError(extractMessage(submissionError));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <main className="app-shell">
-      <div className="page-shell auth-layout">
-        <section className="surface auth-hero">
-          <div>
-            <div className="brand-mark">
-              <span className="brand-badge">RA</span>
-              Secure Task Platform
-            </div>
-            <h1>Register once, then manage work with protected access.</h1>
-            <p>
-              Create an account, receive a JWT access token, and move directly into a role-aware dashboard for tasks.
-            </p>
+    <section className="auth-page auth-register">
+      <div className="auth-card">
+        <div className="auth-card-top">
+          <span className="auth-icon" aria-hidden="true">
+            <UserRound size={20} />
+          </span>
+          <h1>Create Account</h1>
+          <p>Join TaskFlow and start managing your tasks</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+          {error ? <div className="form-banner error">⚠ {error}</div> : null}
+          {success ? <div className="form-banner success">✓ {success}</div> : null}
+
+          <label className="floating-field" htmlFor="register-name">
+            <span className="field-icon">
+              <UserRound size={16} />
+            </span>
+            <input
+              id="register-name"
+              type="text"
+              value={form.name}
+              onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+              placeholder=" "
+              required
+              disabled={submitting}
+              aria-label="Full Name"
+            />
+            <span>Full Name</span>
+          </label>
+
+          <label className="floating-field" htmlFor="register-email">
+            <span className="field-icon">
+              <Mail size={16} />
+            </span>
+            <input
+              id="register-email"
+              type="email"
+              value={form.email}
+              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+              placeholder=" "
+              required
+              disabled={submitting}
+              aria-label="Email Address"
+            />
+            <span>Email Address</span>
+          </label>
+
+          <label className="floating-field" htmlFor="register-password">
+            <span className="field-icon">
+              <Lock size={16} />
+            </span>
+            <input
+              id="register-password"
+              type={showPassword ? "text" : "password"}
+              value={form.password}
+              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+              placeholder=" "
+              minLength={8}
+              required
+              disabled={submitting}
+              aria-label="Password"
+            />
+            <span>Password</span>
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              disabled={submitting}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </label>
+
+          <div className="strength-meter" aria-label={`Password strength: ${passwordStrength.label}`}>
+            <span className={`bar ${passwordStrength.score >= 1 ? passwordStrength.className : ""}`} />
+            <span className={`bar ${passwordStrength.score >= 2 ? passwordStrength.className : ""}`} />
+            <span className={`bar ${passwordStrength.score >= 3 ? passwordStrength.className : ""}`} />
+            <p>{passwordStrength.label}</p>
           </div>
-          <div className="auth-stats">
-            <div className="stat-card">
-              <strong>JWT</strong>
-              <span>Stateless auth for horizontal scale</span>
-            </div>
-            <div className="stat-card">
-              <strong>RBAC</strong>
-              <span>User and admin access control</span>
-            </div>
-            <div className="stat-card">
-              <strong>Prisma</strong>
-              <span>Typed PostgreSQL data layer</span>
-            </div>
+
+          <button className="btn btn-gradient full" type="submit" disabled={submitting}>
+            {submitting ? <LoaderCircle className="spin" size={16} /> : null}
+            {submitting ? "Creating account..." : "Create Account"}
+          </button>
+
+          <div className="auth-divider">
+            <span>or</span>
           </div>
-        </section>
 
-        <section className="surface auth-card">
-          <div className="card-inner">
-            <div className="section-title">Create account</div>
-            <p className="page-subtitle">Use your name, email, and password to register.</p>
-
-            <form className="form-grid" onSubmit={handleSubmit}>
-              <div className="form-row">
-                <label htmlFor="name">Name</label>
-                <input
-                  id="name"
-                  value={form.name}
-                  onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                  type="text"
-                  placeholder="Jane Doe"
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <label htmlFor="email">Email</label>
-                <input
-                  id="email"
-                  value={form.email}
-                  onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                  type="email"
-                  placeholder="jane@example.com"
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  value={form.password}
-                  onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                  type="password"
-                  placeholder="At least 8 characters"
-                  minLength={8}
-                  required
-                />
-              </div>
-
-              {error ? <div className="error-text">{error}</div> : null}
-
-              <button className="button button-primary" type="submit">
-                Register
-              </button>
-            </form>
-
-            <p className="auth-footer">
-              Already have an account? <Link className="muted-link" to="/login">Log in</Link>
-            </p>
-          </div>
-        </section>
+          <p className="auth-text-center">
+            Already have an account? <Link to="/login">Sign In</Link>
+          </p>
+        </form>
       </div>
-    </main>
+    </section>
   );
 }
