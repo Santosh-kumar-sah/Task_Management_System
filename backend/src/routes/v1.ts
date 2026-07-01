@@ -4,6 +4,7 @@ import tasksRouter from "../modules/tasks/tasks.routes";
 
 const v1Router = Router();
 
+//This router is used for authentication
 v1Router.use("/auth", authRouter);
 v1Router.use("/tasks", tasksRouter);
 
